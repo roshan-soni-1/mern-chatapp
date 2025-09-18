@@ -8,6 +8,7 @@ const MessageInput = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
+  const [imageLoading, setimageLoading] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -31,7 +32,7 @@ const MessageInput = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
-
+    setimageLoading(true)
     try {
       await sendMessage({
         text: text.trim(),
@@ -45,18 +46,27 @@ const MessageInput = () => {
     } catch (error) {
       console.error("Failed to send message:", error);
     }
+     finally {
+      setimageLoading(false);
+    }
   };
 
   return (
     <div className="p-4 w-full bg-blend-color">
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
-          <div className="relative">
+          <div className="relative w-20 h-20">
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
+              className="w-full h-full object-cover rounded-lg border border-zinc-700"
             />
+                    
+            {loading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
+                <span className="loading loading-spinner text-black"></span>
+              </div>
+            )}
             <button
               onClick={removeImage}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300

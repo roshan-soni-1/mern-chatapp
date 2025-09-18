@@ -1,13 +1,15 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import ImageModal from "./ImageModal";
 
 const ChatContainer = () => {
+  const [openedImage, setOpenedImage] = useState(null); // set open image
   const {
     messages,
     getMessages,
@@ -124,7 +126,7 @@ const ChatContainer = () => {
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className="sm:max-w-[200px] rounded-md mb-2" onClick={()=>{setOpenedImage(message.image)}}
                 />
               )}
               {message.text && <p>{message.text}</p>}
@@ -134,6 +136,13 @@ const ChatContainer = () => {
       </div>
 
       <MessageInput />
+      {/* Image Modal */}
+      {openedImage && (
+        <ImageModal
+          src={openedImage}       // URL of the tapped image
+          onClose={() => setOpenedImage(null)} // close modal
+        />
+      )}
     </div>
   );
 };

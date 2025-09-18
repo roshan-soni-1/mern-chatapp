@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend",
+  "build": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend ",
     "start": "npm run start --prefix backend"
   },
   "keywords": [],
