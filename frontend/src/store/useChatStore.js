@@ -23,38 +23,84 @@ export const useChatStore = create((set, get) => ({
       set({ isUsersLoading: false });
     }
   },
-
   getMessages: async (userId, { loadMore = false } = {}) => {
-    const { page, messages } = get();
+    const { messages } = get();
     set({ isMessagesLoading: true });
-
+  
     try {
-      const res = await axiosInstance.get(
-        `/messages/${userId}?page=${loadMore ? page + 1 : 1}&limit=20`
-      );
-
-      const newMessages = res.data;
-
+      const oldestMessageId =
+        loadMore && messages.length > 0 ? messages[0]._id : null;
+  
+      const url = oldestMessageId
+        ? `/messages/${userId}?before=${oldestMessageId}`
+        : `/messages/${userId}`;
+  
+      const res = await axiosInstance.get(url);
+      
+      const newMessages = res.data.map(m => ({
+        ...m,
+        seen: m.seen ?? false
+      }));
       if (loadMore) {
-        // prepend older messages
         set({
           messages: [...newMessages, ...messages],
-          page: page + 1,
+          page: get().page + 1,
           hasMoreMessages: newMessages.length > 0,
         });
       } else {
-        // first load (latest messages at bottom)
+        const currentUser = useAuthStore.getState().user;
+        const unseenIds = newMessages
+          .filter(m => m.senderId === userId && !m.seen)
+          .map(m => m._id);
+  
+        if (unseenIds.length) {
+          get().markSeen(unseenIds);
+        }
+  
         set({
           messages: newMessages,
-          page: 1,
           hasMoreMessages: newMessages.length > 0,
         });
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load messages");
+      console.error(error)
     } finally {
       set({ isMessagesLoading: false });
     }
+  },
+  
+  markSeen: (messageIds) => {
+    const socket = useAuthStore.getState().socket;
+    const currentUser = useAuthStore.getState().authUser;
+    if (!socket || !messageIds.length) return;
+  
+    socket.emit("markSeen", {
+      messageIds,               // ✅ use the argument passed in
+      userId: currentUser._id,  
+    });
+  },
+  
+  
+  
+  
+  
+  
+  
+  subscribeToSeen: () => {
+    const socket = useAuthStore.getState().socket;
+  
+    socket.on("messageSeen", ({ messageId }) => {
+      set({
+        messages: get().messages.map(m =>
+          m._id === messageId ? { ...m, seen: true } : m
+        ),
+      });
+    });
+  },
+  unsubscribeFromSeen: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.off("messageSeen");
   },
 
   sendMessage: async (messageData) => {

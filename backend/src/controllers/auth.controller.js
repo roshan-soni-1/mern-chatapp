@@ -3,9 +3,16 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import admin from "../lib/firebaseAdmin.js"
+//import sendVerification from "../middleware/sendMail.middleware.js"
+import crypto from 'crypto';
+import { createTransporter} from "../lib/utils.js"
+import PendingUser from '../models/PendingUser.model.js'; // Mongo model for pending sign-ups
+const transporter = createTransporter();
 
 export const signup = async (req, res) => {
   const { fullName, email, password,userName } = req.body;
+  
+  
   try {
     if (!fullName || !email || !password || !userName) {
       return res.status(400).json({ message: "All fields are required including username" });
@@ -26,30 +33,49 @@ export const signup = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const token = crypto.randomBytes(32).toString('hex');
 
-    const newUser = new User({
-      fullName,
-      userName,
-      email,
-      password: hashedPassword,
-    });
-
-    if (newUser) {
-      // generate jwt token here
-      generateToken(newUser._id, res);
-      await newUser.save();
-
-      res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
-        userName: newUser.userName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
-      });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
+//     const newUser = new User({
+//       fullName,
+//       userName,
+//       email,
+//       password: hashedPassword,
+//     });
+  
+    const newPendingUser= new PendingUser({
+    email,
+    fullName,
+    userName,
+    password:hashedPassword, 
+    token,
+    expires: Date.now() + 600_000 
+  });
+  console.log("PendingUser created")
+  await newPendingUser.save();
+  
+  //const link = process.env.MODE==("production" ? "/":"https://localhost:5001/")+`verify?token=${token}`;
+  const link = `http://localhost:5001/verify?token=${token}`
+  await transporter.sendMail({
+  from: '"Chatty" <roshan.soniin@gmail.com>',
+  to: email,
+  subject: 'Verify Your Email',
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; text-align: center; background-color: #f9f9f9;">
+      <h2 style="color: #333;">Welcome to Our Platform!</h2>
+      <p style="color: #555;">Please verify your email address to get started.</p>
+      <a href="${link}" 
+         style="display: inline-block; padding: 12px 25px; margin-top: 20px; font-size: 16px; color: #fff; background-color: #4CAF50; text-decoration: none; border-radius: 5px;">
+         Verify Email
+      </a>
+      <p style="color: #999; font-size: 12px; margin-top: 20px;">
+        If you did not sign up for this account, you can ignore this email.
+      </p>
+    </div>
+  `
+});
+      res.status(200).json({message:"verfication message send on email"})
     }
-  } catch (error) {
+   catch (error) {
     console.log("Error in signup controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -90,9 +116,6 @@ export const login = async (req, res) => {
   }
 };
 
-
-
-
 export const firebaseLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
@@ -100,24 +123,32 @@ export const firebaseLogin = async (req, res) => {
       return res.status(400).json({ message: "No Firebase token provided" });
     }
 
-    //Verify Firebase ID token
+    // Verify token
     const decoded = await admin.auth().verifyIdToken(idToken);
 
-    //check if user exists
-    let user = await User.findOne({ email: decoded.email });
+    let user = await User.findOne({
+      $or: [{ firebaseUid: decoded.uid }, { email: decoded.email }],
+    });
 
     if (!user) {
-      // If new user, create in Mongo
       user = await User.create({
         fullName: decoded.name || "New User",
-        userName: decoded.email.split("@")[0], // fallback username
-        email: decoded.email,
+        userName: decoded.email
+          ? decoded.email.split("@")[0]
+          : `user_${decoded.uid.substring(0, 6)}`,
+        email: decoded.email || null,
         profilePic: decoded.picture || "/avatar.png",
-        password: null, // Firebase users won’t use local password
+        password: null,
+        authProvider: "firebase",
+        firebaseUid: decoded.uid, 
       });
+    } else if (!user.firebaseUid) {
+      // If  no uid
+      user.firebaseUid = decoded.uid;
+      user.authProvider = "firebase";
+      await user.save();
     }
 
-    //enerate cookie-based JWT for your app
     generateToken(user._id, res);
 
     res.status(200).json({
@@ -126,15 +157,13 @@ export const firebaseLogin = async (req, res) => {
       userName: user.userName,
       email: user.email,
       profilePic: user.profilePic,
+      firebaseUid: user.firebaseUid,
     });
   } catch (error) {
     console.error("Error in firebaseLogin:", error.message);
     res.status(500).json({ message: "Firebase login failed" });
   }
 };
-
-
-
 
 
 export const logout = (req, res) => {
@@ -170,9 +199,15 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-export const checkAuth = (req, res) => {
+export const checkAuth = async(req, res) => {
   try {
-    res.status(200).json(req.user);
+  const user = await PendingUser.findOne({email: req.user.email})
+  if (user) {
+    res.status(401).json({status:"pending",user:req.user})
+  }
+  
+    
+    return res.status(200).json({status:"verified",user:req.user});
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

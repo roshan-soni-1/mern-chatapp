@@ -4,38 +4,43 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useThemeStore } from "../store/useThemeStore";
 import { LogOut, MessageSquare, Settings, User,LogIn } from "lucide-react";
 import { THEMES } from "../constants";
+import UserProfilePage from "../components/UserProfile.jsx"
 
 const SettingsPage = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode")=="true");
   const [notifications, setNotifications] = useState(true);
   const { authUser,logout } = useAuthStore();
-  const { theme, setTheme } = useThemeStore();
+  const { theme, setTheme,secondTheme,setSecondTheme } = useThemeStore();
   useEffect(() => {
     if (darkMode) {
-      setTheme("dark")
-    }
-    else{
-      //setTheme("wireframe")
+      setSecondTheme("dark")
+      localStorage.setItem("darkMode", "true");
       
+    }else{
+      setTheme(localStorage.getItem("chat-theme"))
+      localStorage.setItem("darkMode", "false");
     }
   }, [darkMode,setTheme]);
   useEffect(() => {
-    if (notifications) {
-      // Check if the browser supports notifications
-      if ("Notification" in window) {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            console.log("Notifications enabled!");
-            // You can also trigger a notification here if needed
-            new Notification("Notifications are enabled!");
-          } else {
-            console.log("Notifications denied or dismissed.");
-          }
-        });
-      }
+    if (notifications && "Notification" in window) {
+      Notification.requestPermission().then(async (permission) => {
+        if (permission === "granted") {
+          console.log("Notifications enabled!");
+          new Notification("Notifications are enabled!", {
+            icon: "/icon.png",
+            body: "You’ll now receive updates.",
+          });
+        } else {
+          console.log("Notifications denied or dismissed.");
+        }
+      });
     }
-  }, [notifications]); 
+  }, [notifications]);
+  const [UpdateProfile, setUpdateProfile] = useState(false);
   
+  if (UpdateProfile) {
+    return <UserProfilePage/>
+  }else{
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -56,12 +61,16 @@ const SettingsPage = () => {
             <p className="text-sm opacity-70">Available</p>
           </div>
         </div>
+        {/*
         <Link
           to="/Profile"
           className="btn btn-sm mt-3"
         >
           Edit Profile
         </Link>
+        */}
+        <span className="btn btn-sm mt-3" onClick={()=>setUpdateProfile(true)}>Edit Profile
+        </span>
       </div>
 
       {/* Appearance */}
@@ -145,6 +154,7 @@ const SettingsPage = () => {
       </div>
     </div>
   );
+}
 };
 
 export default SettingsPage;

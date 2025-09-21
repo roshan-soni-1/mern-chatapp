@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Sidebar= () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading,messages } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
@@ -14,7 +14,12 @@ const Sidebar= () => {
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))
     : users;
-
+    
+  const getLastMessage = (userId) => {
+    const userMessages = messages.filter((m) => m.senderId === userId || m.receiverId === userId
+    );
+    return userMessages[userMessages.length - 1];
+  };
   if (isUsersLoading) return <p className="p-4">Loading...</p>;
 
   return (
@@ -32,6 +37,7 @@ const Sidebar= () => {
           {/* Avatar */}
           <div className="relative">
             <img
+            loading="lazy"
               src={user.profilePic || "/avatar.png"}
               alt={user.name}
               className="w-12 h-12 rounded-full object-cover"
@@ -43,9 +49,14 @@ const Sidebar= () => {
 
           {/* User info */}
           <div className="flex-1 text-left min-w-0">
-            <div className="font-medium truncate">{user.fullName}</div>
+            <div className="font-medium truncate">{user.userName}</div>
             <div className="text-sm text-zinc-500 truncate">
-              {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+              {/*onlineUsers.includes(user._id) ? "Online" : "Offline"*/}
+              {(() => {
+        const lastMsg = getLastMessage(user._id);
+        return lastMsg?.text || (lastMsg?.image && "📷 Photo") || "No messages yet";
+      })()
+              }
             </div>
           </div>
         </button>

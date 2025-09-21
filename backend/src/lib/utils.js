@@ -1,4 +1,19 @@
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer"
+
+
+export const createTransporter = ()=>{
+ return nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  }
+});
+}
+
+
+
 
 export const generateToken = (userId, res) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {

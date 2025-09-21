@@ -5,9 +5,15 @@ import { Link } from "react-router-dom";
 
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import CheckEmail from "../components/CheckEmail.jsx"
 
 const SignUpPage = () => {
-  const {loginWithGoogle} = useAuthStore();
+  const {loginWithGoogle,firebaseSignup} = useAuthStore();
+  
+  
+  
+  
   
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,7 +23,7 @@ const SignUpPage = () => {
     userName: "",
   });
 
-  const { signup, isSigningUp } = useAuthStore();
+  const { signup, isSigningUp,isPending } = useAuthStore();
 
   const validateForm = () => {
     if (!formData.fullName.trim()) return toast.error("Full name is required");
@@ -36,7 +42,27 @@ const SignUpPage = () => {
 
     if (success === true) signup(formData);
   };
+//   
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//   
+//     if (!validateForm()) return;
+//   
+//     try {
+//       const userCredential = await firebaseSignup(formData);
+//       console.log("Signed up user:", userCredential.user);
+//       toast.success("Account created successfully!");
+//       setFormData({ fullName: "", email: "", password: "", userName: "" });
+//       await userCredential.user.sendEmailVerification();
+//     } catch (error) {
+//       console.error(error.code, error.message);
+//       toast.error(error.message);
+//     }
+//   };  
 
+  
+ if (isPending) { return <CheckEmail/> }
+ else{
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* left side */}
@@ -194,4 +220,5 @@ const SignUpPage = () => {
     </div>
   );
 };
+}
 export default SignUpPage;

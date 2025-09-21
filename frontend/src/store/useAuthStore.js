@@ -2,10 +2,12 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import axios from "axios";
 
 // Firebase imports
 import { auth, googleProvider } from "../firebase/fiberbase.js";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup,createUserWithEmailAndPassword,sendEmailVerification } from "firebase/auth";
+
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -13,6 +15,7 @@ const BASE_URL =
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
+  isPending:false,
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
@@ -23,10 +26,16 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
-      get().connectSocket();
-    } catch (error) {
-      //console.log("Error in checkAuth:", error);
+      
+        set({ authUser: res.data.user });
+        get().connectSocket();
+      }
+     catch (error) {
+      //console.log("Error in checkAuth:", error)
+      if (error.status=="pending") {
+        set({ isPendingUser: true, authUser: null });
+        
+      }
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -39,16 +48,17 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       set({ authUser: res.data });
-      toast.success("Account created successfully");
-      get().connectSocket();
+      toast.success("verification email sent");
+      //get().connectSocket();
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
+      console.error(error)
     } finally {
-      set({ isSigningUp: false });
+      //set({ isSigningUp: false });
+      set({isPending:true})
     }
   },
 
-  // 🔹 Regular login
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
@@ -58,12 +68,11 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
+      console.error(error)
     } finally {
       set({ isLoggingIn: false });
     }
   },
-
-  // 🔹 Firebase Google login
   loginWithGoogle: async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -109,7 +118,6 @@ export const useAuthStore = create((set, get) => ({
       set({ isUpdatingProfile: false });
     }
   },
-
   // 🔹 Socket connection
   connectSocket: () => {
     const { authUser } = get();

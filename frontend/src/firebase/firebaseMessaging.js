@@ -1,9 +1,9 @@
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { app } from "./fiberbase.js"; // your firebase config
+import { app } from "./fiberbase.js";
+import { axiosInstance } from "../lib/axios.js";
 
 const messaging = getMessaging(app);
 
-// ✅ Request permission + get token
 export const requestFirebaseNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
@@ -13,7 +13,7 @@ export const requestFirebaseNotificationPermission = async () => {
     }
 
     const token = await getToken(messaging, {
-      vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc", // From Firebase Console > Cloud Messaging > Web Push certificates
+      vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc",
     });
 
     if (!token) {
@@ -23,13 +23,11 @@ export const requestFirebaseNotificationPermission = async () => {
 
     console.log("FCM Token:", token);
 
-    // 👉 Send token to your backend API
-    await fetch("/api/save-fcm-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fcmToken: token }),
-      credentials: "include", // if using cookies for auth
-    });
+    await axiosInstance.post(
+      "/api/save-fcm-token",
+      { fcmToken: token },
+      { withCredentials: true }
+    );
 
     return token;
   } catch (err) {
@@ -38,7 +36,6 @@ export const requestFirebaseNotificationPermission = async () => {
   }
 };
 
-// ✅ Foreground listener
 export const onMessageListener = (callback) => {
   onMessage(messaging, (payload) => {
     console.log("📩 Foreground message received: ", payload);
@@ -46,17 +43,17 @@ export const onMessageListener = (callback) => {
   });
 };
 
-// ✅ Handle token refresh (in case token expires or changes)
 export const UpdateFcmToken = async (oldToken) => {
-  const newToken = await getToken(messaging, { vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc" });
+  const newToken = await getToken(messaging, {
+    vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc",
+  });
   if (newToken && newToken !== oldToken) {
     console.log("🔄 Token refreshed:", newToken);
 
-    await fetch("/api/save-fcm-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fcmToken: newToken }),
-      credentials: "include",
-    });
+    await axiosInstance.post(
+      "/api/save-fcm-token",
+      { fcmToken: newToken },
+      { withCredentials: true }
+    );
   }
 };

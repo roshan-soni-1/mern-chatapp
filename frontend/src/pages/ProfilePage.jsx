@@ -1,131 +1,138 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { LogOut, MessageSquare, User, UserPlus, UserX,MessageCircleMore} from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User } from "lucide-react";
+import { axiosInstance } from "../lib/axios.js";
+import toast from "react-hot-toast";
+import ManageFriendRequests from "../components/userComponent/ManageRequest.jsx"
 
 const ProfilePage = () => {
-  const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
-  const [selectedImg, setSelectedImg] = useState(null);
+  const { authUser } = useAuthStore();
+  let { userId } = useParams();
+  userId = userId ?? authUser._id
+  
+  const [user, setUser] = useState(null);
+  const [isFriend, setIsFriend] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = async () => {
-      const img = new Image();
-      img.src = reader.result;
-
-      img.onload = async () => {
-        const canvas = document.createElement("canvas");
-        const maxWidth = 500;
-        const scaleSize = maxWidth / img.width;
-        canvas.width = maxWidth;
-        canvas.height = img.height * scaleSize;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-        setSelectedImg(compressedBase64);
-
-        try {
-          await updateProfile({ profilePic: compressedBase64 });
-        } catch (err) {
-          console.log("Failed to update profile:", err.message);
-        }
-      };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axiosInstance.get(`/users/${userId}`);
+        setUser(res.data);
+        console.log(res)
+  
+        
+        if (authUser?.friends?.includes(userId)) setIsFriend(true);
+        if (authUser?.friendRequestsSent?.includes(userId)) setRequestSent(true);
+        if (authUser?.blockedUsers?.includes(userId)) setBlocked(true);
+  
+      } catch (err) {
+        console.error(err);
+        toast.error(err.data?.message)
+        setUser(authUser)
+      }
     };
+  
+    fetchUser();
+  }, [userId, authUser]);
+
+  const handleFriendRequest = async () => {
+    try {
+      await axiosInstance.post(`/friends/request/${userId}`);
+      setRequestSent(true);
+      toast.success("request sent")
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  const handleBlock = async () => {
+    try {
+      await axiosInstance.post(`/friends/block/${userId}`);
+      setBlocked(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  console.log(user)
+
+  if (!user) return <p>Loading...</p>;
+
   return (
-    <div className="h-screen pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
-        <div className="bg-base-300 rounded-xl p-6 space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold">Profile</h1>
-            <p className="mt-2">Your profile information</p>
-          </div>
-
-          {/* avatar upload section */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border-4"
-              />
-              <label
-                htmlFor="avatar-upload"
-                className={`
-                  absolute bottom-0 right-0 
-                  bg-base-content hover:scale-105
-                  p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
-                `}
-              >
-                <Camera className="w-5 h-5 text-base-200" />
-                <input
-                  type="file"
-                  id="avatar-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUpdatingProfile}
-                />
-              </label>
-            </div>
-            <p className="text-sm text-zinc-400">
-              {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Full Name
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
-            </div>
-
-            {/* Username */}
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Username
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.userName}</p>
-            </div>
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email Address
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
-            </div>
-          </div>
-
-          <div className="mt-6 bg-base-300 rounded-xl p-6">
-            <h2 className="text-lg font-medium mb-4">Account Information</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                <span>Member Since</span>
-                <span>{authUser.createdAt ? new Date(authUser.createdAt).toLocaleDateString() : "-"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span>Account Status</span>
-                <span className="text-green-500">Active</span>
-              </div>
-            </div>
-          </div>
+    <div className="max-w-screen-sm mx-auto p-6 mt-12">
+      {/* Profile header */}
+      <div className="flex items-center gap-6 mb-6">
+        <img
+        loading="lazy"
+          src={user.profilePic || "/avatar.png"}
+          alt="Profile"
+          className="w-24 h-24 rounded-full object-cover border-2"
+        />
+        <div>
+          <h2 className="text-xl font-bold">{user.userName||"unknown"}</h2>
+          <p className="text-sm mt-1">{user.statusMessage}
+          good morning
+          </p>
+        </div>
+        <div className="ml-auto flex gap-2">
+          {!blocked && authUser?._id !== user._id && (
+            <button
+              className="btn btn-sm  text-red-400 flex items-center gap-1"
+              onClick={handleBlock}
+            >
+              <UserX className="w-4 h-4  " /></button>
+          )}
         </div>
       </div>
+
+      {/* Stats */}
+      <div className="flex justify-around mb-6 text-center">
+      
+          {authUser?._id === user._id ? (
+            <button className="btn btn-sm btn-outline flex items-center gap-1">
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          ) : blocked ? (
+            <button className="btn btn-sm btn-error flex items-center gap-1" disabled>
+              <UserX className="w-4 h-4" /> Blocked
+            </button>
+          ) : isFriend ? (
+            <button className="btn btn-sm btn-outline flex items-center gap-1">
+              <MessageSquare className="w-4 h-4" /> Message
+            </button>
+          ) : requestSent ? (
+            <button className="btn btn-sm btn-disabled flex items-center gap-1">
+              Request Sent
+            </button>
+          ) : (
+            <button
+              className="btn btn-sm btn-primary flex items-center gap-1 "
+              onClick={handleFriendRequest}
+            >
+              <UserPlus className="w-4 h-4" /> Request
+            </button>
+          )}
+        
+          
+    
+        
+        
+        
+        
+        
+        <div>
+          <p className="font-bold">{user?.friends?.length || "∞"}</p>
+          <p className="text-sm opacity-70">Friends</p>
+        </div>
+        <div className="">
+          <button className="">
+            <MessageCircleMore/>
+          </button>
+        </div>
+      </div>
+    <ManageFriendRequests/>
     </div>
   );
 };

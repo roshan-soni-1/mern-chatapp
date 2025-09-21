@@ -23,15 +23,46 @@ const userSchema = new mongoose.Schema(
       required: false,
       minlength: 6,
     },
+    authProvider:{
+      type: String,
+    },
+    firebaseUid:{
+      type: String,
+    },
     profilePic: {
       type: String,
-      default: "",
+      default: "/avatar.png",
     },
     // models/user.model.js
     fcmToken: {
       type: String,
       default: null,
     },
+    friends:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      ],
+    friendRequestRecieved:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      ],
+    friendRequestSent:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      ],
+    blockedUser:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      ],
+    
   },
   { timestamps: true }
 );

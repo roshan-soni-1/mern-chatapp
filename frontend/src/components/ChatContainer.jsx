@@ -16,6 +16,7 @@ const ChatContainer = () => {
     isMessagesLoading,
     selectedUser,
     subscribeToMessages,
+    subscribeToSeen,
     unsubscribeFromMessages,
     hasMoreMessages,
   } = useChatStore();
@@ -31,6 +32,22 @@ const ChatContainer = () => {
   msgRecSound.volume = 0.1;
   msgSendSound.volume = 0.1;
 
+  useEffect(() => {
+    const socket = useAuthStore.getState().socket;
+    socket.on("messageSeen", ({ messageId }) => {
+      useChatStore.setState(state => ({
+        messages: state.messages.map(m =>
+          m._id === messageId ? { ...m, seen: true } : m
+        )
+      }));
+    });
+  
+    return () => socket.off("messageSeen");
+  }, []);
+
+
+  
+
   // Initial load and subscription
   useEffect(() => {
     if (selectedUser?._id) {
@@ -40,13 +57,12 @@ const ChatContainer = () => {
     return () => unsubscribeFromMessages();
   }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
-  // Auto-scroll for new messages (bottom only) + play sounds
   useEffect(() => {
     if (!messageEndRef.current) return;
 
     const prevLength = prevMessagesLengthRef.current;
     const newLength = messages.length;
-
+    console.log(messages)
     // Scroll only if new message added at bottom
     if (newLength > prevLength) {
       const lastMessage = messages[messages.length - 1];
@@ -62,20 +78,20 @@ const ChatContainer = () => {
     prevMessagesLengthRef.current = newLength;
   }, [messages]);
 
-  // Load older messages when scroll reaches top
-  const handleScroll = async (e) => {
-    if (!hasMoreMessages || isMessagesLoading) return;
-
-    const top = e.currentTarget.scrollTop;
-    if (top === 0) {
-      const prevHeight = e.currentTarget.scrollHeight;
-      await getMessages(selectedUser._id, { loadMore: true });
-      const newHeight = e.currentTarget.scrollHeight;
-
-      // preserve scroll position after prepending older messages
-      e.currentTarget.scrollTop = newHeight - prevHeight;
-    }
-  };
+  // Load older messages
+//   const handleScroll = async (e) => {
+//     if (!hasMoreMessages || isMessagesLoading) return;
+// 
+//     const top = e.currentTarget.scrollTop;
+//     if (top === 0) {
+//       const prevHeight = e.currentTarget.scrollHeight;
+//       await getMessages(selectedUser._id, { loadMore: true });
+//       const newHeight = e.currentTarget.scrollHeight;
+// 
+//       // preserve scroll position after prepending older messages
+//       e.currentTarget.scrollTop = newHeight - prevHeight;
+//     }
+//   };
 
   if (isMessagesLoading && messages.length === 0) {
     return (
@@ -94,7 +110,6 @@ const ChatContainer = () => {
       <div
         className="flex-1 overflow-y-auto p-4 space-y-4"
         ref={containerRef}
-        onScroll={handleScroll}
       >
         {messages.map((message, index) => (
           <div
@@ -120,6 +135,7 @@ const ChatContainer = () => {
               <time className="text-xs opacity-50 ml-1">
                 {formatMessageTime(message.createdAt)}
               </time>
+              
             </div>
             <div className="chat-bubble flex flex-col">
               {message.image && (
@@ -131,6 +147,9 @@ const ChatContainer = () => {
               )}
               {message.text && <p>{message.text}</p>}
             </div>
+            <span className=" px-1 text-blue-300">{message.seen && authUser._id== message.senderId?"seen":""}
+              </span>
+            
           </div>
         ))}
       </div>
