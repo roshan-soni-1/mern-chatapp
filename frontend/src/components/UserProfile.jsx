@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User } from "lucide-react";
+import { Camera, Mail, User,Settings2 } from "lucide-react";
 
 const UserProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
@@ -59,7 +59,7 @@ const UserProfilePage = () => {
                 alt="Profile"
                 className="w-32 h-32 rounded-full object-cover border-4"
               />
-              <label htmlFor="profilePicInput" aria-label="Upload profile picture"
+              <label aria-label="Upload profile picture"
                 className={`
                   absolute bottom-0 right-0 
                   bg-base-content hover:scale-105
@@ -72,7 +72,7 @@ const UserProfilePage = () => {
                 <input
                   type="file"
                   id="avatar-upload"
-                  className="hidden"
+                  className= "hidden"
                   accept="image/*"
                   onChange={handleImageUpload}
                   disabled={isUpdatingProfile}

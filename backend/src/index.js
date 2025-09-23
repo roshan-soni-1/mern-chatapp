@@ -22,7 +22,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
-
+console.log(PORT)
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -39,7 +39,7 @@ app.use("/api/friends",friendRoutes)
 app.use("/verify", checkValid);
 app.use("/api/users",userRoute)
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.MODE_ENV == "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
   app.get("*", (req, res) => {

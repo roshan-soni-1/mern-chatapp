@@ -66,7 +66,7 @@ const ChatContainer = () => {
     // Scroll only if new message added at bottom
     if (newLength > prevLength) {
       const lastMessage = messages[messages.length - 1];
-      //messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
 
       if (lastMessage.senderId !== authUser._id) {
         msgRecSound.play().catch(() => {});

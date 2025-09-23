@@ -58,9 +58,9 @@ export const signup = async (req, res) => {
   });
   await newPendingUser.save();
   const url = process.env.SERVE_URL;
-  let link = (process.env.MODE_ENV=="production") ? url:"http://localhost:5001/"
+  let link = (process.env.MODE_ENV=="development") ? "http://localhost:5001/" : url;
+  
   link = link+`verify/email?token=${token}`;
-  //const link = `http://localhost:5001/verify?token=${token}`
   await transporter.sendMail({
   from: '"Chatty" <roshan.soniin@gmail.com>',
   to: email,
