@@ -1,8 +1,12 @@
 import React from "react";
 import { MailCheck, Mail } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuthStore } from "../store/useAuthStore.js";
 
 const CheckEmail = ({ email }) => {
+  
+  const {authUser}=useAuthStore();
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <motion.div
@@ -26,7 +30,7 @@ const CheckEmail = ({ email }) => {
 
         <p className="text-gray-700">
           We’ve sent a verification link to{" "}
-          <strong>{email || "your email"}</strong>.
+          <strong>{authUser.email || "your email"}</strong>.
         </p>
         <p className="text-sm text-gray-500 mt-2">
           Please click the link in your inbox to activate your account.

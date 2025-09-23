@@ -13,6 +13,7 @@ dist-ssr
 *.local
 backend/src/bootstrap.js
 /frontend/src/store/useAuthStore wto firebase email.js
+backend/src/admin/*
 
 # Editor directories and files
 .vscode/*

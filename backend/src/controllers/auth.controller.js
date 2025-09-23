@@ -3,10 +3,14 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import admin from "../lib/firebaseAdmin.js"
+import validator from "validator"
 //import sendVerification from "../middleware/sendMail.middleware.js"
 import crypto from 'crypto';
 import { createTransporter} from "../lib/utils.js"
 import PendingUser from '../models/PendingUser.model.js'; // Mongo model for pending sign-ups
+
+
+
 const transporter = createTransporter();
 
 export const signup = async (req, res) => {
@@ -24,9 +28,13 @@ export const signup = async (req, res) => {
     if (userName.length < 5) {
       return res.status(400).json({ message: "userName must be at least 5 characters" });
     }
+    const isRealEmail = validator.isEmail(email);
+    if (!isRealEmail) {
+      return res.status(400).json({ message: "use correct email"});
+    }
 
-    const user = await User.findOne({ email });
-    const userNotUnique = await User.findOne({ userName });
+    const user = await User.exists({ email });
+    const userNotUnique = await User.exists({ userName });
 
     if (user) return res.status(400).json({ message: "Email already exists" });
     if (userNotUnique) return res.status(400).json({message: "username not available"})
@@ -34,27 +42,25 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const token = crypto.randomBytes(32).toString('hex');
-
-//     const newUser = new User({
-//       fullName,
-//       userName,
-//       email,
-//       password: hashedPassword,
-//     });
-  
+    
+    const pendingUserExists = await PendingUser.exists({ email });
+    
+    if (pendingUserExists) {
+      return res.status(400).json({ message: "Check your email" });
+    }
     const newPendingUser= new PendingUser({
     email,
     fullName,
     userName,
     password:hashedPassword, 
     token,
-    expires: Date.now() + 600_000 
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
   });
-  console.log("PendingUser created")
   await newPendingUser.save();
-  
-  //const link = process.env.MODE==("production" ? "/":"https://localhost:5001/")+`verify?token=${token}`;
-  const link = `http://localhost:5001/verify?token=${token}`
+  const url = process.env.SERVE_URL;
+  let link = (process.env.MODE_ENV=="production") ? url:"http://localhost:5001/"
+  link = link+`verify/email?token=${token}`;
+  //const link = `http://localhost:5001/verify?token=${token}`
   await transporter.sendMail({
   from: '"Chatty" <roshan.soniin@gmail.com>',
   to: email,
@@ -198,18 +204,20 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-export const checkAuth = async(req, res) => {
+export const checkAuth = async (req, res) => {
   try {
-  const user = await PendingUser.findOne({email: req.user.email})
-  if (user) {
-    res.status(401).json({status:"pending",user:req.user})
-  }
-  
-    
-    return res.status(200).json({status:"verified",user:req.user});
+    // Make sure req.user exists
+    if (!req.user || !req.user.email) {
+      return res.status(400).json({ message: "User info missing from request" });
+    }
+    const isPending = await PendingUser.exists({ email: req.user.email });
+
+    if (isPending) {
+      return res.status(401).json({ status: "pending", user: req.user });
+    }
+    return res.status(200).json({ status: "verified", user: req.user });
   } catch (error) {
-    console.log("Error in checkAuth controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in checkAuth controller:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -7,15 +7,19 @@ import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import CheckEmail from "../components/CheckEmail.jsx"
+import { axiosNoPrefix } from "../lib/axios.js";
 
 const SignUpPage = () => {
-  const {loginWithGoogle,firebaseSignup} = useAuthStore();
+  const {loginWithGoogle,firebaseSignup,authUser} = useAuthStore();
   
   
   
   
   
   const [showPassword, setShowPassword] = useState(false);
+  const [isUsernameAvailable, setisUsernameAvailable] = useState(false);
+  console.log(isUsernameAvailable)
+  const [isEmailCorrect, setisEmailCorrect] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -23,7 +27,7 @@ const SignUpPage = () => {
     userName: "",
   });
 
-  const { signup, isSigningUp,isPending } = useAuthStore();
+  const { signup, isSigningUp,isPendingUser } = useAuthStore();
 
   const validateForm = () => {
     if (!formData.fullName.trim()) return toast.error("Full name is required");
@@ -33,35 +37,63 @@ const SignUpPage = () => {
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
 
     return true;
-  };
+    };
+    useEffect(() => {
+    if (!formData.email) return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axiosNoPrefix.get(
+          `/verify/check-email?email=${encodeURIComponent(formData.email)}`,
+          { signal: controller.signal }
+        );
+        setisEmailCorrect(res.data.isCorrect);
+      } catch (err) {
+        if (err.name !== 'CanceledError') console.error(err);
+      }
+    }, 1000);
+  
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [formData.email]);
+
+  useEffect(() => {
+    if (!formData.userName) return;
+  
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axiosNoPrefix.get(
+          `/verify/check-username?username=${encodeURIComponent(formData.userName)}`,
+          { signal: controller.signal }
+        );
+        setisUsernameAvailable(res.data.available);
+      } catch (err) {
+        if (err.name !== 'CanceledError') {
+          console.error("Username availability check error:", err);
+        }
+      }
+    }, 1000);
+  
+    return () => {
+      clearTimeout(timer);
+      controller.abort(); // cancel previous request
+    };
+  }, [formData.userName]);  
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const success = validateForm();
 
-    if (success === true) signup(formData);
+    if (success === true && isUsernameAvailable && isEmailCorrect) signup(formData);
   };
-//   
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//   
-//     if (!validateForm()) return;
-//   
-//     try {
-//       const userCredential = await firebaseSignup(formData);
-//       console.log("Signed up user:", userCredential.user);
-//       toast.success("Account created successfully!");
-//       setFormData({ fullName: "", email: "", password: "", userName: "" });
-//       await userCredential.user.sendEmailVerification();
-//     } catch (error) {
-//       console.error(error.code, error.message);
-//       toast.error(error.message);
-//     }
-//   };  
-
   
- if (isPending) { return <CheckEmail/> }
+ if (isPendingUser) {
+  return <CheckEmail email={authUser?.email} />;
+}
  else{
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -91,6 +123,7 @@ const SignUpPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="size-5 text-base-content/40" />
                 </div>
+                
                 <input
                   type="text"
                   className={`input input-bordered w-full pl-10`}
@@ -116,6 +149,11 @@ const SignUpPage = () => {
                   value={formData.userName}
                   onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
                 />
+                {formData.userName && (
+                  <p className={`mt-1 text-sm ${isUsernameAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                    {isUsernameAvailable ? 'Username available ✅' : 'Username taken ❌'}
+                  </p>
+                )}
               </div>
             </div>
             
@@ -135,8 +173,15 @@ const SignUpPage = () => {
                   className={`input input-bordered w-full pl-10`}
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                 />
+                {formData.email && (
+                  <p className={`mt-1 text-sm ${isEmailCorrect ? "text-green-600" : "text-red-600"}`}>
+                    {isEmailCorrect ? "" : "Email is invalid ❌"}
+                  </p>
+                )}
               </div>
             </div>
 

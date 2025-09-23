@@ -2,6 +2,8 @@ import PendingUser from "../models/PendingUser.model.js";
 import User from "../models/user.model.js";
 import { generateToken } from "../lib/utils.js";
 
+
+
 const verifyEmail = async (req, res) => {
   const { token } = req.query;
 
@@ -21,7 +23,6 @@ console.log(PendingUser)
   // Delete pending record
   try {
   await PendingUser.deleteOne({ _id: pending._id });
-  console.log("delete")
     
   } catch (err) {
     console.error('Error:', err);
@@ -30,15 +31,9 @@ console.log(PendingUser)
 
   // Generate JWT token for logged-in session
   generateToken(newUser._id, res);
-
-  // res.status(201).json({
-//     _id: newUser._id,
-//     fullName: newUser.fullName,
-//     userName: newUser.userName,
-//     email: newUser.email,
-//     profilePic: newUser.profilePic,
-//   });
-res.redirect("http://localhost:5173/");
+const redirectRoute =(process.env.MODE_ENV== "development")? "http://localhost:5173/":process.env.SERVE_URL ;
+res.redirect(redirectRoute);
 };
-export default verifyEmail;
+
+export default verifyEmail
   

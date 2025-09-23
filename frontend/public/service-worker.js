@@ -5,7 +5,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: message,
-      icon: "/vite.png", // optional
+      icon: "/chat.png", // optional
     })
   );
 });

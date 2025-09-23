@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useChatStore } from "./store/useChatStore";
+import CheckEmail from "./components/CheckEmail.jsx"
 
 import { 
   requestFirebaseNotificationPermission, 
@@ -23,7 +24,7 @@ import {
 } from "./firebase/firebaseMessaging.js";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth,isPendingUser } = useAuthStore();
   const { theme } = useThemeStore();
   const { selectedUser } = useChatStore();
 
@@ -57,10 +58,29 @@ const App = () => {
       {!selectedUser && <Navbar />}
       <Routes>
         <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+        {/*
+          <Route path="/signup" element={ !authUser ? (isPendingUser ? <CheckEmailPage /> : <SignUpPage />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+       */ }
+                 <Route path="/signup" element={  isPendingUser ? <CheckEmail/> :!authUser?<SignUpPage/>:
+                <Navigate to="/" />
+                 
+            }
+          />
         <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/ThemesPage" element={<ThemesPage />} />
+        
+        <Route
+          path="/profile"
+          element={authUser ? <Navigate to={`/profile/${authUser._id}`} /> : <Navigate to="/login" />}
+        />
+
+        
         <Route path="/profile/:userId" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
       <Toaster />

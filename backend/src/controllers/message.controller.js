@@ -14,6 +14,7 @@ export const getUsersForSidebar = async (req, res) => {
     const user = await User.findById(loggedInUserId).select("friends blockedUser").exec();
     const friends = user.friends || [];
     const blocked = user.blockedUser || [];
+    //const suggested = User.
 
     // Get users who messaged or were messaged by the logged-in user
     const messages = await Message.find({
@@ -64,7 +65,7 @@ export const getAllMessages = async (req, res) => {
      });
     res.status(200).json(messages);
   } catch (error) {
-    console.log("Error in getMessages controller: ", error.message);
+    console.error("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -102,7 +103,7 @@ export const getMessages = async (req, res) => {
 
     res.status(200).json(orderedMessages);
   } catch (error) {
-    console.log("Error in getMessages controller: ", error.message);
+    console.error("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -150,7 +151,7 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(newMessage);
   } catch (error) {
-    console.log("Error in sendMessage controller: ", error.message);
+    console.error("Error in sendMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };

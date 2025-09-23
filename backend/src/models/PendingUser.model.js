@@ -26,10 +26,7 @@ const pendingUserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  expires: {
-    type: Date,
-    required: true,
-  },
+  expiresAt: { type: Date, index: { expires: 0 } },
 }, { timestamps: true });
 
 const PendingUser = mongoose.model("PendingUser", pendingUserSchema);

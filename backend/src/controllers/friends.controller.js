@@ -189,13 +189,19 @@ export const manageFriendRequests = async (req, res) => {
 
     // Get the IDs of users who sent friend requests
     const requestersIds = user.friendRequestRecieved || [];
-
+    const blockedUser = user.blockedUser || [];
+    const friend = user.friends ||[];
+    const RequestSentUser = user.friendRequestSent || [];
+    const excludeSuggested = [...friend,...blockedUser,...RequestSentUser,userId]
     // Fetch basic info of each requester
+    
     const requesters = await User.find({ _id: { $in: requestersIds } })
-      .select("userName profilePic") // only return these fields
+      .select("userName profilePic")
       .exec();
+      
+    const suggested = await User.find({_id: { $nin: excludeSuggested }}).select("username profilePic").exec();
 
-    res.json({ requests: requesters });
+    res.json({ requests: requesters,suggested });
   } catch (err) {
     console.error("Error fetching incoming friend requests:", err);
     res.status(500).json({ message: err.message });

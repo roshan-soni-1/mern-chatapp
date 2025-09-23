@@ -13,7 +13,7 @@ import userRoute from "./routes/user.route.js"
 
 import NotificationRoutes from "./routes/notification.route.js"
 import { app, server } from "./lib/socket.js";
-import verifyEmail from "./routes/verifyEmail.route.js"
+import checkValid from "./routes/verify.route.js"
 
 app.use(express.json({ limit: "10mb" })); 
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
@@ -36,9 +36,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notify", NotificationRoutes);
 app.use("/api/friends",friendRoutes)
-app.get("/verify", verifyEmail);
+app.use("/verify", checkValid);
 app.use("/api/users",userRoute)
-
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));

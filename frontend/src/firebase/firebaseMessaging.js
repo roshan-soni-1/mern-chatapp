@@ -3,7 +3,6 @@ import { app } from "./fiberbase.js";
 import { axiosInstance } from "../lib/axios.js";
 
 const messaging = getMessaging(app);
-
 export const requestFirebaseNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
@@ -12,8 +11,13 @@ export const requestFirebaseNotificationPermission = async () => {
       return null;
     }
 
+    // 👇 Register your service worker first
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    console.log('Service Worker registered for FCM:', registration);
+
     const token = await getToken(messaging, {
       vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc",
+      serviceWorkerRegistration: registration // 👈 important for Chrome
     });
 
     if (!token) {
@@ -21,10 +25,10 @@ export const requestFirebaseNotificationPermission = async () => {
       return null;
     }
 
-    console.log("FCM Token:", token);
+    //console.log("FCM Token:", token);
 
     await axiosInstance.post(
-      "/api/save-fcm-token",
+      "/notify/save-fcm-token",
       { fcmToken: token },
       { withCredentials: true }
     );
@@ -36,22 +40,24 @@ export const requestFirebaseNotificationPermission = async () => {
   }
 };
 
+
 export const onMessageListener = (callback) => {
   onMessage(messaging, (payload) => {
     console.log("📩 Foreground message received: ", payload);
     callback(payload);
   });
 };
-
 export const UpdateFcmToken = async (oldToken) => {
+  const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
   const newToken = await getToken(messaging, {
     vapidKey: "BH8ecQHGBL3wzFgUXvmLuUm6e0hL9ELecBjPGYNbkYWQ2H3zP_QOA1POFllGkW9j9IIA4WIuivjYR589PzzsVpc",
+    serviceWorkerRegistration: registration
   });
   if (newToken && newToken !== oldToken) {
     console.log("🔄 Token refreshed:", newToken);
 
     await axiosInstance.post(
-      "/api/save-fcm-token",
+      "/notify/save-fcm-token",
       { fcmToken: newToken },
       { withCredentials: true }
     );

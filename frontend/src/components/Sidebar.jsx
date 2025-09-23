@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { LoaderCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Sidebar= () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading,messages } = useChatStore();
@@ -20,7 +22,9 @@ const Sidebar= () => {
     );
     return userMessages[userMessages.length - 1];
   };
-  if (isUsersLoading) return <p className="p-4">Loading...</p>;
+  if (isUsersLoading) return <div className="flex justify-center h-screen w-screen">
+        <LoaderCircle className="size-10 animate-spin" />
+      </div>;
 
   return (
     <div className="flex-1 overflow-y-auto bg-base-100">
@@ -63,7 +67,23 @@ const Sidebar= () => {
       ))}
 
       {filteredUsers.length === 0 && (
-        <div className="text-center text-zinc-500 py-6">No users found</div>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-center px-4">
+          <p className="text-zinc-400 text-lg md:text-xl font-medium py-4">
+            You caught up!
+          </p>
+          
+          <div className="bg-zinc-800 rounded-xl shadow-lg p-8 md:p-12 mt-6 w-full max-w-md">
+            <p className="text-green-400 text-lg md:text-xl font-semibold mb-6">
+              Go to your profile page and add some friends
+            </p>
+            
+            <Link to="/profile" className="inline-flex items-center justify-center gap-2.5">
+              <button className="w-32 py-3 bg-green-400 text-white font-semibold rounded-lg shadow-md hover:bg-green-500 transition-all duration-300">
+                Profile
+              </button>
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -5,12 +5,11 @@ import { useAuthStore } from "../store/useAuthStore";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import ManageFriendRequests from "../components/userComponent/ManageRequest.jsx"
+import SendFriendRequest from "../components/userComponent/ManageSuggested.jsx"
 
 const ProfilePage = () => {
   const { authUser } = useAuthStore();
   let { userId } = useParams();
-  userId = userId ?? authUser._id
-  
   const [user, setUser] = useState(null);
   const [isFriend, setIsFriend] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
@@ -21,7 +20,7 @@ const ProfilePage = () => {
       try {
         const res = await axiosInstance.get(`/users/${userId}`);
         setUser(res.data);
-        console.log(res)
+        //console.log(res)
   
         
         if (authUser?.friends?.includes(userId)) setIsFriend(true);
@@ -123,7 +122,7 @@ const ProfilePage = () => {
         
         
         <div>
-          <p className="font-bold">{user?.friends?.length || "∞"}</p>
+          <p className="font-bold">{user?.friends?.length || "0"}</p>
           <p className="text-sm opacity-70">Friends</p>
         </div>
         <div className="">
@@ -133,6 +132,8 @@ const ProfilePage = () => {
         </div>
       </div>
     <ManageFriendRequests/>
+    <SendFriendRequest/>
+    
     </div>
   );
 };

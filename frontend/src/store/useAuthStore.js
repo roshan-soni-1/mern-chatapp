@@ -10,12 +10,12 @@ import { signInWithPopup,createUserWithEmailAndPassword,sendEmailVerification } 
 
 
 const BASE_URL =
-  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+  import.meta.env.MODE_ENV === "development" ? "http://localhost:5001" : "/";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
-  isPending:false,
+  isPendingUser:false,
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
@@ -23,41 +23,47 @@ export const useAuthStore = create((set, get) => ({
   socket: null,
 
   // 🔹 Check session
-  checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get("/auth/check");
-      
-        set({ authUser: res.data.user });
-        get().connectSocket();
-      }
-     catch (error) {
-      //console.log("Error in checkAuth:", error)
-      if (error.status=="pending") {
-        set({ isPendingUser: true, authUser: null });
-        
-      }
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
+checkAuth: async () => {
+  try {
+    const res = await axiosInstance.get("/auth/check");
+    set({ authUser: res.data.user, isPendingUser: false });
+    get().connectSocket();
+
+  } catch (error) {
+    const status = error.response?.status;
+
+    if (status === 401 && error.response?.data?.status === "pending") {
+      // Pending user
+      set({ isPendingUser: true, authUser: null });
+    } else {
+      // Other errors
+      set({ authUser: null, isPendingUser: false });
+      console.error("Error in checkAuth:", error);
     }
-  },
+  } finally {
+    set({ isCheckingAuth: false });
+  }
+},
+
+
+
 
   // 🔹 Regular signup
-  signup: async (data) => {
-    set({ isSigningUp: true });
-    try {
-      const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
-      toast.success("verification email sent");
-      //get().connectSocket();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Signup failed");
-      console.error(error)
-    } finally {
-      //set({ isSigningUp: false });
-      set({isPending:true})
-    }
-  },
+signup: async (data) => {
+  set({ isSigningUp: true });
+  try {
+    const res = await axiosInstance.post("/auth/signup", data);
+
+    set({ authUser: res.data, isPendingUser: true });
+    toast.success("Verification email sent");
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Signup failed");
+    console.error(error);
+  } finally {
+    set({ isSigningUp: false });
+  }
+},
+
 
   login: async (data) => {
     set({ isLoggingIn: true });
