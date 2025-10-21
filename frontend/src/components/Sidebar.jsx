@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle,MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Sidebar= () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading,messages } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading,messages,authUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
@@ -65,28 +65,26 @@ const Sidebar= () => {
           </div>
         </button>
       ))}
-
-      {filteredUsers.length === 0 && (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-center px-4">
-          <p className="text-zinc-400 text-lg md:text-xl font-medium py-4">
-            You caught up!
-          </p>
-          
-          <div className="bg-zinc-800 rounded-xl shadow-lg p-8 md:p-12 mt-6 w-full max-w-md">
-            <p className="text-green-400 text-lg md:text-xl font-semibold mb-6">
-              Go to your profile page and add some friends
+        {filteredUsers.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+            <div className="w-24 h-24 mb-4 rounded-full border-4 border-gray-900 dark:border-white flex items-center justify-center">
+              <MessageCircle className="w-12 h-12 text-gray-900 dark:text-white" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No messages yet
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-xs">
+              Start a conversation with your friends
             </p>
-            
-            <Link to="/profile" className="inline-flex items-center justify-center gap-2.5">
-              <button className="w-32 py-3 bg-green-400 text-white font-semibold rounded-lg shadow-md hover:bg-green-500 transition-all duration-300">
-                Profile
-              </button>
+            <Link
+              to={`/profile`}
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Find Friends
             </Link>
-          </div>
-        </div>
-      )}
+          </div>)}
     </div>
-  );
+  )
 };
 
 export default Sidebar;

@@ -208,7 +208,7 @@ const FriendsList = () => {
                   return (
                     <div
                       key={friend._id}
-                      className="py-2 flex items-center justify-between group"
+                      className="py-2 flex items-center justify-between group" onClick={() => navigate(`/profile/${friend._id}`)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="relative flex-shrink-0">
@@ -233,7 +233,6 @@ const FriendsList = () => {
                           )}
                         </div>
                       </div>
-
                       <div className="flex items-center gap-2 ml-3">
                         <button
                           onClick={() => handleMessageFriend(friend._id)}
