@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuthStore } from "../../store/useAuthStore.js";
 import { axiosInstance } from "../../lib/axios.js";
+import { useParams, Link } from "react-router-dom";
 import { 
   Search, 
   Users, 
@@ -19,11 +20,12 @@ const FriendsList = () => {
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
   const [sortBy, setSortBy] = useState("name"); // name, recent
+  const { userId } = useParams();
 
   const fetchFriends = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get("/friends");
+      const res = await axiosInstance.get(`/friends/list/${userId}`);
       setFriends(res.data.friends || []);
     } catch (err) {
       console.error("Error fetching friends:", err);

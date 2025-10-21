@@ -15,11 +15,11 @@ import {
 } from "./firebase/firebaseMessaging.js";
 
 // ✅ Lazy load pages (automatic chunk splitting)
-const HomePage = lazy(() => import("./pages/HomePage"));
-const SignUpPage = lazy(() => import("./pages/SignUpPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+import HomePage from "./pages/HomePage.jsx"
+import SignUpPage from "./pages/SignUpPage.jsx"
+import LoginPage from "./pages/LoginPage.jsx"
+const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
 const FriendsPage = lazy(() => import("./pages/FriendsPage.jsx"));
 const ThemesPage = lazy(() => import("./pages/ThemesPage.jsx"));
 

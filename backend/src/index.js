@@ -22,12 +22,23 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
-// console.log(PORT)
+ console.log(PORT)
 app.use(express.json());
 app.use(cookieParser());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://talkly.netlify.app"
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );

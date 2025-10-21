@@ -199,7 +199,7 @@ export const manageFriendRequests = async (req, res) => {
       .select("userName profilePic")
       .exec();
       
-    const suggested = await User.find({_id: { $nin: excludeSuggested }}).select("username profilePic").exec();
+    const suggested = await User.find({_id: { $nin: excludeSuggested }}).select("userName profilePic").exec();
 
     res.json({ requests: requesters,suggested });
   } catch (err) {

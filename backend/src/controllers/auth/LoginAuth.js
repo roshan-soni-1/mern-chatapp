@@ -18,7 +18,12 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "wrong email" });
+    }
+    else if (!user.password) {
+      return res.status(400).json({
+        message: "This account was created with Google. Please log in using Google Sign-In.",
+      });
     }
 
     // Verify password

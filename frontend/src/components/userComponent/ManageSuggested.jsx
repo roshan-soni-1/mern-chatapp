@@ -12,7 +12,6 @@ const SendFriendRequest = () => {
   const fetchSuggested = async () => {
     try {
       const res = await axiosInstance.get(`/friends/manage`);
-      // backend returns { requests: [...], suggested: [...] }
       setSuggestedUsers(res.data.suggested || []);
     } catch (err) {
       console.error(err);
@@ -41,7 +40,7 @@ const SendFriendRequest = () => {
     return <p className="text-center">No suggested users available.</p>;
 
   return (
-    <div className="max-w-md mx-auto p-4 border rounded-lg shadow-md">
+    <div className="max-w-md rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">Suggested Users</h2>
       <ul className="space-y-3">
         {suggestedUsers.map((user) => (
@@ -55,7 +54,7 @@ const SendFriendRequest = () => {
                 alt={user.userName}
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <span className="font-medium">{user.userName}</span>
+              <span className="font-medium w-10">{user.userName || "john"}</span>
             </div>
             <button
               className="btn btn-sm btn-primary flex items-center gap-1"

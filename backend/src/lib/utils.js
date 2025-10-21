@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer"
-
+import dotenv from "dotenv";
+dotenv.config({ path: '../.env' });
 
 export const createTransporter = ()=>{
  return nodemailer.createTransport({
@@ -11,7 +12,6 @@ export const createTransporter = ()=>{
   }
 });
 }
-
 
 
 
