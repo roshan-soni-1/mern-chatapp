@@ -1,7 +1,7 @@
 
 import admin from "../../lib/firebaseAdmin.js";
 import User from "../../models/user.model.js";
-
+import { generateToken } from "../../lib/utils.js";
 
 export const firebaseLogin = async (req, res) => {
   try {
