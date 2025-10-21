@@ -9,11 +9,8 @@
     "dev": "npm run dev --prefix backend"
   },
   "keywords": [],
-  "author": "",
+  "author": "roshan soni",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^2.2.0",
-    "firebase-admin": "^13.5.0",
-    "web-push": "^3.6.7"
   }
 }
