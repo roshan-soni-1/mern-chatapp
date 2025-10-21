@@ -25,23 +25,17 @@ const __dirname = path.resolve();
  console.log(PORT)
 app.use(express.json());
 app.use(cookieParser());
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://talkly.netlify.app"
-];
-
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "http://localhost:5173",
+      `${process.env.FRONTEND_URL||""}`
+    ],
     credentials: true,
   })
 );
+
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
