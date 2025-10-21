@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   LogOut,
-  MessageSquare,
-  User,
+  MessageCircle,
   UserPlus,
   UserX,
-  MessageCircleMore,
+  MoreHorizontal,
+  Settings,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { axiosInstance } from "../lib/axios.js";
@@ -23,8 +24,9 @@ const ProfilePage = () => {
   const [requestSent, setRequestSent] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch user info
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -48,31 +50,35 @@ const ProfilePage = () => {
     fetchUser();
   }, [userId, authUser]);
 
-  // Friend Request Handler
   const handleFriendRequest = async () => {
     try {
+      setActionLoading(true);
       await axiosInstance.post(`/friends/request/${userId}`);
       setRequestSent(true);
-      toast.success("Friend request sent!");
+      toast.success("Friend request sent");
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to send request");
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Block Handler
   const handleBlock = async () => {
     try {
+      setActionLoading(true);
       await axiosInstance.post(`/friends/block/${userId}`);
       setBlocked(true);
+      setShowMenu(false);
       toast.success("User blocked");
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to block user");
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Logout Handler
   const handleLogout = () => {
     logout();
     toast.success("Logged out successfully");
@@ -80,112 +86,195 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
-        Loading profile...
+      <div className="min-h-screen w-screen bg-white dark:bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-400">
-        User not found 😕
+      <div className="min-h-screen w-screen bg-white dark:bg-black flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 dark:text-gray-400">User not found</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-screen-sm mx-auto p-6 mt-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md transition duration-300">
-      {/* Profile Header */}
-      <div className="flex items-center gap-6 mb-6">
-        <img
-          loading="lazy"
-          src={user.profilePic || "/avatar.png"}
-          alt="Profile"
-          className="w-24 h-24 rounded-full object-cover border-2 border-gray-300 shadow-sm"
-        />
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-            {user.userName || "Unknown User"}
-          </h2>
-          <p className="text-sm mt-1 text-gray-600 dark:text-gray-300 italic">
-            {user.statusMessage || "Hey there! I'm using ChatApp 😎"}
-          </p>
-        </div>
-        <div className="ml-auto">
-          {!blocked && authUser?._id !== user._id && (
-            <button
-              onClick={handleBlock}
-              className="p-2 rounded-full hover:bg-red-50 text-red-500 transition"
-              title="Block user"
-            >
-              <UserX className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-      </div>
+  const isOwnProfile = authUser?._id === user._id;
 
-      {/* Buttons / Stats */}
-      <div className="flex justify-around mb-6 text-center">
-        {authUser?._id === user._id ? (
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg shadow-sm transition"
-          >
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
-        ) : blocked ? (
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-red-100 text-red-600 rounded-lg shadow-sm"
-          >
-            <UserX className="w-4 h-4" /> Blocked
-          </button>
-        ) : isFriend ? (
-          <button
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-lg shadow-sm transition"
-          >
-            <MessageSquare className="w-4 h-4" /> Message
-          </button>
-        ) : requestSent ? (
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 text-gray-500 rounded-lg shadow-sm"
-          >
-            Request Sent
-          </button>
-        ) : (
-          <button
-            onClick={handleFriendRequest}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-md transition"
-          >
-            <UserPlus className="w-4 h-4" /> Add Friend
-          </button>
+  return (
+    <div className="min-h-screen w-screen bg-white dark:bg-black flex flex-col">
+      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col">
+        {/* Profile Header */}
+        <div className="px-4 py-8 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-start gap-8 mb-6 flex-wrap">
+            {/* Profile Picture */}
+            <div className="flex-shrink-0">
+              <img
+                src={user.profilePic || "/avatar.png"}
+                alt={user.userName}
+                className="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover"
+              />
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-4 mb-4 flex-wrap">
+                <h1 className="text-xl font-light text-gray-900 dark:text-white">
+                  {user.userName}
+                </h1>
+
+                {isOwnProfile ? (
+                  <>
+                    <Link
+                      to="/settings"
+                      className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold text-gray-900 dark:text-white rounded-lg transition-colors"
+                    >
+                      Edit profile
+                    </Link>
+                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                      <Settings className="w-6 h-6 text-gray-900 dark:text-white" />
+                    </button>
+                  </>
+                ) : blocked ? (
+                  <button
+                    disabled
+                    className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-sm font-semibold text-gray-400 rounded-lg cursor-not-allowed"
+                  >
+                    Blocked
+                  </button>
+                ) : isFriend ? (
+                  <>
+                    <button className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold text-gray-900 dark:text-white rounded-lg transition-colors">
+                      Friends
+                    </button>
+                    <button className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-sm font-semibold text-white rounded-lg transition-colors flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4" />
+                      Message
+                    </button>
+                  </>
+                ) : requestSent ? (
+                  <button
+                    disabled
+                    className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-sm font-semibold text-gray-400 rounded-lg cursor-not-allowed"
+                  >
+                    Requested
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleFriendRequest}
+                    disabled={actionLoading}
+                    className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-sm font-semibold text-white rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-4 h-4" />
+                    )}
+                    Follow
+                  </button>
+                )}
+
+                {!isOwnProfile && !blocked && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMenu(!showMenu)}
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <MoreHorizontal className="w-6 h-6 text-gray-900 dark:text-white" />
+                    </button>
+
+                    {showMenu && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setShowMenu(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden z-20">
+                          <button
+                            onClick={handleBlock}
+                            disabled={actionLoading}
+                            className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {actionLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <UserX className="w-4 h-4" />
+                            )}
+                            Block User
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex gap-8 mb-4 flex-wrap">
+                <div>
+                  <span className="font-semibold text-gray-900 dark:text-white">0</span>
+                  <span className="ml-1 text-gray-900 dark:text-white">posts</span>
+                </div>
+                <Link
+                  to={`/friends/${userId}`}
+                  className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                >
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.friends?.length || 0}
+                  </span>
+                  <span className="ml-1 text-gray-900 dark:text-white">friends</span>
+                </Link>
+                <div>
+                  <span className="font-semibold text-gray-900 dark:text-white">0</span>
+                  <span className="ml-1 text-gray-900 dark:text-white">following</span>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div className="text-sm">
+                {user.fullName && (
+                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                    {user.fullName}
+                  </p>
+                )}
+                {user.statusMessage && (
+                  <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                    {user.statusMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Friend Request Management */}
+        {isOwnProfile && (
+          <div className="px-4 py-6 space-y-6">
+            <ManageFriendRequests />
+            <SendFriendRequest />
+          </div>
         )}
 
-        {/* Friends Count */}
-        <Link
-          to={`/friends/${userId}`}
-          className="text-center hover:scale-105 transition-transform"
-        >
-          <p className="font-bold text-lg text-gray-800 dark:text-white">
-            {user?.friends?.length || 0}
-          </p>
-          <p className="text-sm text-gray-500">Friends</p>
-        </Link>
-
-        {/* Message Shortcut */}
-        <button
-          className="p-3 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition"
-          title="Chat"
-        >
-          <MessageCircleMore />
-        </button>
+        {/* Posts Grid Placeholder */}
+        <div className="px-4 py-12 flex-1 flex flex-col justify-center items-center">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-2 border-gray-900 dark:border-white mb-4">
+              <MessageCircle className="w-8 h-8 text-gray-900 dark:text-white" />
+            </div>
+            <h3 className="text-2xl font-light text-gray-900 dark:text-white mb-2">
+              No Posts Yet
+            </h3>
+            {isOwnProfile && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                When you share photos, they'll appear on your profile.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
-
-      {/* Friend Request Panels */}
-      <ManageFriendRequests />
-      <SendFriendRequest />
     </div>
   );
 };

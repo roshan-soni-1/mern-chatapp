@@ -4,6 +4,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useChatStore } from "./store/useChatStore";
 import { LoaderCircle } from "lucide-react";
+import BottomNav from "./components/BottomNav.jsx"
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import CheckEmail from "./components/CheckEmail.jsx";
@@ -28,7 +29,7 @@ const App = () => {
   const { theme } = useThemeStore();
   const { selectedUser } = useChatStore();
 
-  // ✅ Check authentication on load
+  // check authentication on load
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -39,7 +40,7 @@ const App = () => {
 
     // Listen for foreground messages
     onMessageListener((payload) => {
-      alert(`New message: ${payload.notification.title} - ${payload.notification.body}`);
+//       alert(`New message: ${payload.notification.title} - ${payload.notification.body}`);
     });
 
     // Refresh FCM token if needed
@@ -57,8 +58,7 @@ const App = () => {
 
   return (
     <div data-theme={localStorage.getItem("darkMode") === "true" ? "dark" : theme}>
-      {/* Navbar hidden when chat is open */}
-      {!selectedUser && <Navbar />}
+      {!selectedUser && <BottomNav />}
 
       {/* Lazy loading fallback */}
       <Suspense

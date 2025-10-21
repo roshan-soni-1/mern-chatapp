@@ -5,7 +5,8 @@ import {
   declineFriendRequest,
   blockUser,
   getFriends,
-  manageFriendRequests
+  manageFriendRequests,
+  removeFriend
 } from "../controllers/friends.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -19,6 +20,7 @@ router.post("/accept/:senderId",protectRoute, acceptFriendRequest);
 
 // Decline a friend request
 router.post("/decline/:senderId", protectRoute,declineFriendRequest);
+router.delete("/remove/:friendId", protectRoute,removeFriend);
 
 // Block a user
 router.post("/block/:blockedId", protectRoute,blockUser);

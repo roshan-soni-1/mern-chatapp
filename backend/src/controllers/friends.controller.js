@@ -121,6 +121,38 @@ export const declineFriendRequest = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const removeFriend = async (req, res) => {
+  try {
+    const userId = req.user._id; // logged-in user
+    const friendId = req.params.friendId; // friend to remove
+
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend)
+      return res.status(404).json({ message: "User not found" });
+
+    // Defensive defaults
+    user.friends = user.friends || [];
+    friend.friends = friend.friends || [];
+
+    // Remove friend references
+    user.friends = user.friends.filter(
+      (id) => id.toString() !== friendId.toString()
+    );
+    friend.friends = friend.friends.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+
+    await user.save();
+    await friend.save();
+
+    res.json({ message: "Friend removed successfully!" });
+  } catch (err) {
+    console.error("Error in removeFriend:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 // Block User
 export const blockUser = async (req, res) => {
@@ -207,3 +239,4 @@ export const manageFriendRequests = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+

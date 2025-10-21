@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "../../store/useAuthStore.js";
 import { axiosInstance } from "../../lib/axios.js";
-import { UserCheck, UserX, Loader2, Users, Sparkles } from "lucide-react";
+import { UserCheck, UserX, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ManageFriendRequests = () => {
@@ -34,15 +34,7 @@ const ManageFriendRequests = () => {
 
     try {
       await axiosInstance.post(`/friends/accept/${requesterId}`);
-      
-      toast.success(
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4" />
-          <span>Friend request accepted!</span>
-        </div>,
-        { duration: 3000 }
-      );
-      
+      toast.success("Friend request accepted");
       setRequests((prev) => prev.filter((r) => r._id !== requesterId));
       setAuthUser({
         ...authUser,
@@ -81,170 +73,99 @@ const ManageFriendRequests = () => {
     }
   }, [processingIds]);
 
-  // Loading state
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-8">
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="w-10 h-10 animate-spin text-purple-600 dark:text-purple-400" />
-            <p className="text-gray-600 dark:text-gray-300 font-medium">
-              Loading friend requests...
-            </p>
+      <div className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
           </div>
         </div>
       </div>
     );
   }
 
-  // Empty state
   if (requests.length === 0) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-8">
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 dark:from-purple-600 dark:to-blue-600">
-              <Users className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-              No Friend Requests
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-              You're all caught up! No pending friend requests at the moment.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl p-6">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                Friend Requests
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {requests.length} {requests.length === 1 ? "request" : "requests"} pending
-              </p>
-            </div>
-          </div>
+    <div className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            Friend Requests
+          </h2>
+          {requests.length > 3 && (
+            <button className="text-sm font-semibold text-blue-500 hover:text-blue-600">
+              See All
+            </button>
+          )}
         </div>
 
-        {/* Requests List */}
-        <ul className="space-y-3">
-          {requests.map((request, index) => {
+        <div className="space-y-3">
+          {requests.slice(0, 3).map((request) => {
             const isProcessing = processingIds.has(request._id);
             
             return (
-              <li
+              <div
                 key={request._id}
-                className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
-                style={{
-                  animation: `slideIn 0.3s ease-out ${index * 0.1}s both`
-                }}
+                className="flex items-center justify-between gap-3"
               >
-                <div className="flex items-center justify-between p-4">
-                  {/* User Info */}
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="relative">
-                      <img
-                        src={request.profilePic || "/avatar.png"}
-                        alt={request.userName}
-                        className="w-14 h-14 rounded-full object-cover ring-4 ring-purple-100 dark:ring-purple-900 group-hover:ring-purple-300 dark:group-hover:ring-purple-700 transition-all"
-                        loading="lazy"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-white text-lg truncate">
-                        {request.userName}
-                      </p>
-                      {request.fullName && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {request.fullName}
-                        </p>
-                      )}
-                      {request.mutualFriends > 0 && (
-                        <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                          {request.mutualFriends} mutual {request.mutualFriends === 1 ? "friend" : "friends"}
-                        </p>
-                      )}
-                    </div>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={request.profilePic || "/avatar.png"}
+                      alt={request.userName}
+                      className="w-11 h-11 rounded-full object-cover"
+                    />
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      className={`
-                        px-4 py-2 rounded-lg font-medium text-sm
-                        flex items-center gap-2 transition-all duration-200
-                        ${isProcessing 
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                        }
-                      `}
-                      onClick={() => handleAccept(request._id)}
-                      disabled={isProcessing}
-                      aria-label={`Accept friend request from ${request.userName}`}
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <UserCheck className="w-4 h-4" />
-                      )}
-                      <span className="hidden sm:inline">Accept</span>
-                    </button>
-                    
-                    <button
-                      className={`
-                        px-4 py-2 rounded-lg font-medium text-sm
-                        flex items-center gap-2 transition-all duration-200
-                        ${isProcessing 
-                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : "bg-gray-200 dark:bg-gray-700 hover:bg-red-500 dark:hover:bg-red-600 text-gray-700 dark:text-gray-300 hover:text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                        }
-                      `}
-                      onClick={() => handleReject(request._id)}
-                      disabled={isProcessing}
-                      aria-label={`Reject friend request from ${request.userName}`}
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <UserX className="w-4 h-4" />
-                      )}
-                      <span className="hidden sm:inline">Decline</span>
-                    </button>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {request.userName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {request.fullName || "Wants to be your friend"}
+                    </p>
+                    {request.mutualFriends > 0 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {request.mutualFriends} mutual {request.mutualFriends === 1 ? "friend" : "friends"}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </li>
+
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => handleAccept(request._id)}
+                    disabled={isProcessing}
+                    className="px-6 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors disabled:cursor-not-allowed flex items-center gap-1.5"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Confirm"
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleReject(request._id)}
+                    disabled={isProcessing}
+                    className="px-6 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:bg-gray-50 dark:disabled:bg-gray-900 text-gray-900 dark:text-white text-sm font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
+              </div>
             );
           })}
-        </ul>
+        </div>
       </div>
-
-      {/* Inline CSS for animations */}
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 };
