@@ -22,7 +22,8 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       default: false
       
-    }
+    },
+    expiresAt: { type: Date, index: { expires: 0 } },
   },
   { timestamps: true }
 );

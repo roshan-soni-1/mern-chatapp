@@ -99,12 +99,15 @@ export const sendMessage = async (req, res) => {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
-
+    
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // Adds 50 days
     const newMessage = new Message({
       senderId,
       receiverId,
       text,
       image: imageUrl,
+      expiresAt
     });
 
     await newMessage.save();
