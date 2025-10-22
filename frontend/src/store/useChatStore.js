@@ -36,19 +36,26 @@ export const useChatStore = create((set, get) => ({
         : `/messages/${userId}`;
   
       const res = await axiosInstance.get(url);
-      
-      const newMessages = res.data.map(m => ({
+  
+      const newMessages = res.data.messages.map(m => ({
         ...m,
         seen: m.seen ?? false
       }));
+  
       if (loadMore) {
+        // Avoid duplicates when prepending
+        const uniqueNew = newMessages.filter(
+          m => !messages.some(msg => msg._id === m._id)
+        );
+  
         set({
-          messages: [...newMessages, ...messages],
-          page: get().page + 1,
-          hasMoreMessages: newMessages.length > 0,
+          messages: [...uniqueNew, ...messages],
+          hasMoreMessages: uniqueNew.length > 0,
         });
       } else {
         const currentUser = useAuthStore.getState().user;
+        
+        // Mark unseen messages as seen
         const unseenIds = newMessages
           .filter(m => m.senderId === userId && !m.seen)
           .map(m => m._id);
@@ -64,7 +71,7 @@ export const useChatStore = create((set, get) => ({
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load messages");
-      console.error(error)
+      console.error(error);
     } finally {
       set({ isMessagesLoading: false });
     }

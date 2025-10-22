@@ -4,6 +4,7 @@ import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import { sendNotification } from "../lib/sendNotification.js";
+import mongoose from "mongoose";
 
 
 export const getUsersForSidebar = async (req, res) => {
@@ -50,36 +51,12 @@ export const getUsersForSidebar = async (req, res) => {
 };
 
 
-
-
-export const getAllMessages = async (req, res) => {
-  try {
-    const { id: userToChatId } = req.params;
-    const myId = req.user._id;
-
-     const messages = await Message.find({
-       $or: [
-         { senderId: myId, receiverId: userToChatId },
-         { senderId: userToChatId, receiverId: myId },
-       ],
-     });
-    res.status(200).json(messages);
-  } catch (error) {
-    console.error("Error in getMessages controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-
 export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
-
-    // query: ?before=<oldest messageId>
     const beforeId = req.query.before;
 
-    // base query
     const query = {
       $or: [
         { senderId: myId, receiverId: userToChatId },
@@ -87,27 +64,25 @@ export const getMessages = async (req, res) => {
       ],
     };
 
-    //if ?before- only get older messages
     if (beforeId) {
-      query._id = { $lt: beforeId }; 
+        query._id = { $lt: new mongoose.Types.ObjectId(beforeId) };
     }
 
     const limit = 20;
 
-    // newest DB query
     const messages = await Message.find(query)
-      .sort({ _id: -1 }) // newest
+      .sort({ _id: -1 })
       .limit(limit);
 
-    const orderedMessages = messages.reverse();
-
-    res.status(200).json(orderedMessages);
+    res.status(200).json({
+      messages: messages.reverse(),
+      hasMore: messages.length === limit
+    });
   } catch (error) {
     console.error("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 
 
