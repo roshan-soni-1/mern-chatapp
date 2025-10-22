@@ -151,7 +151,7 @@ const SignUpPage = () => {
                 />
                 {formData.userName && (
                   <p className={`mt-1 text-sm ${isUsernameAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                    {isUsernameAvailable ? 'Username available ✅' : 'Username taken ❌'}
+                    {isUsernameAvailable ? 'Username available  ' : 'Username taken ❌'}
                   </p>
                 )}
               </div>

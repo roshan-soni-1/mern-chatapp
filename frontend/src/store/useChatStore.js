@@ -76,7 +76,7 @@ export const useChatStore = create((set, get) => ({
     if (!socket || !messageIds.length) return;
   
     socket.emit("markSeen", {
-      messageIds,               // ✅ use the argument passed in
+      messageIds,               //   use the argument passed in
       userId: currentUser._id,  
     });
   },

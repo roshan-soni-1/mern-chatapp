@@ -54,6 +54,7 @@ const LoginPage = () => {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
                 />
               </div>
             </div>
@@ -72,6 +73,7 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
                 />
                 <button
                   type="button"
