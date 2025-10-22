@@ -28,7 +28,6 @@ const App = () => {
   const { authUser, checkAuth, isCheckingAuth, isPendingUser } = useAuthStore();
   const { theme } = useThemeStore();
   const { selectedUser } = useChatStore();
-
   // check authentication on load
   useEffect(() => {
     checkAuth();
