@@ -14,6 +14,7 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import ManageFriendRequests from "../components/userComponent/ManageRequest.jsx";
 import SendFriendRequest from "../components/userComponent/ManageSuggested.jsx";
+import ProfileSkeleton from "../components/skeletons/ProfileSkeleton.jsx"
 
 const ProfilePage = () => {
   const { authUser, logout } = useAuthStore();
@@ -86,9 +87,7 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-screen bg-white dark:bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-      </div>
+      <ProfileSkeleton/>
     );
   }
 
@@ -130,13 +129,11 @@ const ProfilePage = () => {
                   <>
                     <Link
                       to="/settings"
-                      className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold text-gray-900 dark:text-white rounded-lg transition-colors"
                     >
-                      Edit profile
-                    </Link>
                     <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
                       <Settings className="w-6 h-6 text-gray-900 dark:text-white" />
                     </button>
+                    </Link>
                   </>
                 ) : blocked ? (
                   <button
@@ -214,20 +211,20 @@ const ProfilePage = () => {
 
               {/* Stats */}
               <div className="flex gap-8 mb-4 flex-wrap">
-                <div>
-                  <span className="font-semibold text-gray-900 dark:text-white">0</span>
+                <div className="bg-gray-800 p-1.5 rounded-md">
+                  <span className="font-semibold text-gray-900 dark:text-white ">0</span>
                   <span className="ml-1 text-gray-900 dark:text-white">posts</span>
                 </div>
                 <Link
                   to={`/friends/${userId}`}
-                  className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                  className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors bg-gray-800 p-1.5 rounded-md"
                 >
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {user?.friends?.length || 0}
                   </span>
                   <span className="ml-1 text-gray-900 dark:text-white">friends</span>
                 </Link>
-                <div>
+                <div className="bg-gray-800 p-1.5 rounded-md">
                   <span className="font-semibold text-gray-900 dark:text-white">0</span>
                   <span className="ml-1 text-gray-900 dark:text-white">following</span>
                 </div>

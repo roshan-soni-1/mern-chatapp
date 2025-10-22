@@ -11,11 +11,11 @@ import { axiosNoPrefix } from "../lib/axios.js";
 
 const SignUpPage = () => {
   const {loginWithGoogle,firebaseSignup,authUser} = useAuthStore();
-  
-  
-  
-  
-  
+
+
+
+
+
   const [showPassword, setShowPassword] = useState(false);
   const [isUsernameAvailable, setisUsernameAvailable] = useState(false);
   // console.log(isUsernameAvailable)
@@ -52,7 +52,7 @@ const SignUpPage = () => {
         if (err.name !== 'CanceledError') console.error(err);
       }
     }, 1000);
-  
+
     return () => {
       clearTimeout(timer);
       controller.abort();
@@ -61,7 +61,7 @@ const SignUpPage = () => {
 
   useEffect(() => {
     if (!formData.userName) return;
-  
+
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
@@ -76,7 +76,7 @@ const SignUpPage = () => {
         }
       }
     }, 1000);
-  
+
     return () => {
       clearTimeout(timer);
       controller.abort(); // cancel previous request
@@ -90,7 +90,7 @@ const SignUpPage = () => {
 
     if (success === true && isUsernameAvailable && isEmailCorrect) signup(formData);
   };
-  
+
  if (isPendingUser) {
   return <CheckEmail email={authUser?.email} />;
 }
@@ -123,7 +123,7 @@ const SignUpPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="size-5 text-base-content/40" />
                 </div>
-                
+
                 <input
                   type="text"
                   className={`input input-bordered w-full pl-10`}
@@ -133,7 +133,7 @@ const SignUpPage = () => {
                 />
               </div>
             </div>
-            
+
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Username</span>
@@ -156,9 +156,9 @@ const SignUpPage = () => {
                 )}
               </div>
             </div>
-            
-            
-            
+
+
+
 
             <div className="form-control">
               <label className="label">

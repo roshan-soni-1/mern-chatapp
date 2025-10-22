@@ -92,7 +92,7 @@ const App = () => {
           <Route path="/settings" element={<SettingsPage />} />
 
           {/* Themes */}
-          <Route path="/ThemesPage" element={<ThemesPage />} />
+          <Route path="/themes" element={<ThemesPage />} />
 
           {/* Profile redirect for self */}
           <Route

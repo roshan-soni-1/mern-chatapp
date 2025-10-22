@@ -3,6 +3,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { LoaderCircle,MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import SidebarSkeleton from "../components/skeletons/SidebarSkeleton.jsx"
 
 const Sidebar= () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading,messages,authUser } = useChatStore();
@@ -22,9 +23,10 @@ const Sidebar= () => {
     );
     return userMessages[userMessages.length - 1];
   };
-  if (isUsersLoading) return <div className="flex justify-center h-screen w-screen">
-        <LoaderCircle className="size-10 animate-spin" />
-      </div>;
+//   if (isUsersLoading) return <div className="flex justify-center h-screen w-screen">
+//         <LoaderCircle className="size-10 animate-spin" />
+//       </div>;
+  if (isUsersLoading) return <SidebarSkeleton/>;
 
   return (
     <div className="flex-1 overflow-y-auto bg-base-100">

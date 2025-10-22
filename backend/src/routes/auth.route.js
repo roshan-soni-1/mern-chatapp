@@ -5,7 +5,7 @@ import {login} from '../controllers/auth/LoginAuth.js'
 import {firebaseLogin} from '../controllers/auth/FirebaseLogin.auth.js'
 import {logout} from '../controllers/auth/Logout.auth.js'
 import {signup} from '../controllers/auth/Signup.auth.js'
-import {updateProfile} from '../controllers/auth/UpdateProfile.js'
+import {updateProfile,updatePassword} from '../controllers/auth/UpdateProfile.js'
 
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -17,6 +17,7 @@ router.post("/logout", logout);
 router.post("/firebase-login", firebaseLogin)
 
 router.put("/update-profile", protectRoute, updateProfile);
+router.put("/update-password", protectRoute, updatePassword);
 
 router.get("/check", protectRoute, checkAuth);
 
