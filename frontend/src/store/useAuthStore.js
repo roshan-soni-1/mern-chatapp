@@ -80,6 +80,7 @@ signup: async (data) => {
     }
   },
   loginWithGoogle: async () => {
+    set({ isLoggingIn: true });
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -96,9 +97,12 @@ signup: async (data) => {
       console.error("Google sign-in error:", error);
       toast.error("Google sign-in failed");
     }
+    finally{
+      set({ isLoggingIn: false });
+    }
   },
 
-  // 🔹 Logout
+  // Logout
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");

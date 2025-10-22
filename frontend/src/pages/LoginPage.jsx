@@ -5,14 +5,12 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 
 const LoginPage = () => {
-  const {loginWithGoogle} = useAuthStore();
-  
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const { login, isLoggingIn } = useAuthStore();
+  const { login, isLoggingIn,loginWithGoogle } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,6 +101,7 @@ const LoginPage = () => {
           <button
     onClick={loginWithGoogle}
     className="w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium hover:bg-gray-100 transition duration-300 active:bg-gray-100"
+    disabled={isLoggingIn}
 >
     <svg className="w-5 h-5" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g clipPath="url(#clip0_17_40)">

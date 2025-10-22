@@ -10,6 +10,7 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import ImageModal from "./ImageModal";
 import { formatMessageTime } from "../lib/utils";
+import { LoaderCircle } from "lucide-react";
 
 // Memoized single message
 const ChatMessage = memo(({ msg, isOwn, onImageClick, authUser, selectedUser }) => (
@@ -114,7 +115,7 @@ const ChatContainer = () => {
   const handleScroll = useCallback(async () => {
     if (!containerRef.current || !hasMoreMessages || isMessagesLoading) return;
 
-    if (containerRef.current.scrollTop <= 10) {
+    if (containerRef.current.scrollTop <= 20) {
       const prevHeight = containerRef.current.scrollHeight;
       await getMessages(selectedUser._id, { loadMore: true });
       const newHeight = containerRef.current.scrollHeight;
@@ -144,12 +145,22 @@ const ChatContainer = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
-      <ChatHeader />
+      <ChatHeader name={selectedUser?.userName} />
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-4 "
+        className="flex-1 overflow-y-auto p-4 space-y-4"
         ref={containerRef}
         onScroll={handleScroll}
       >
+        {!isMessagesLoading&&!hasMoreMessages&&(
+        <div className="flex justify-center py-2 text-center bg-gray-700 rounded-lg max-w-[80vw] m-auto">
+          Thank you for using our website we will implement other features soon.
+        </div>
+        )}
+        {isMessagesLoading&&hasMoreMessages&&(
+        <div className="flex justify-center py-2 animate-spin">
+        <LoaderCircle/>
+        </div>
+        )}
         {messages.map(msg => (
           <ChatMessage
             key={msg._id}
