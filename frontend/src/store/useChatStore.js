@@ -141,7 +141,27 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
   },
-
+  
+  selectUserById: async (userId) => {
+    const { users, setSelectedUser } = get();
+  
+    // 1. Check in existing users list
+    let user = users.find(u => u._id === userId);
+  
+    // 2. If not found, fetch user from backend
+    if (!user) {
+      try {
+        const res = await axiosInstance.get(`/users/${userId}`);
+        user = res.data;
+      } catch (err) {
+        toast.error("User not found");
+        return;
+      }
+    }
+  
+    // 3. Select the user normally
+    setSelectedUser(user);
+  },
   setSelectedUser: (selectedUser) =>
     set({
       selectedUser,
@@ -149,4 +169,5 @@ export const useChatStore = create((set, get) => ({
       page: 1,
       hasMoreMessages: true,
     }),
+  
 }));

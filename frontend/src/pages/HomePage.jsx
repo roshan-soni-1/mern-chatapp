@@ -1,6 +1,7 @@
 import { useChatStore } from "../store/useChatStore";
 import {useEffect,useState} from "react"
 import {useAuthStore} from "../store/useAuthStore.js"
+import { useParams } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import NoChatSelected from "../components/NoChatSelected";
@@ -9,8 +10,15 @@ import CheckEmail from "../components/CheckEmail.jsx"
 import Navbar from "../components/Navbar.jsx"
 
 
-const HomePage = () => {
-  const { selectedUser } = useChatStore();
+  const HomePage = () => {
+  const { selectedUser ,selectUserById } = useChatStore();
+  const { userId } = useParams();
+
+  useEffect(() => {
+    if (userId) {
+      selectUserById(userId);
+    }
+  }, [userId, selectUserById]);
 
   return (
     <div className="h-screen bg-base-200">

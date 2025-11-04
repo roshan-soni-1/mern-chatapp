@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -84,6 +85,7 @@ const ProfilePage = () => {
     logout();
     toast.success("Logged out successfully");
   };
+  const handleMessage = (user) => { navigate(`/chat/${user._id}`) };
 
   if (loading) {
     return (
@@ -147,8 +149,11 @@ const ProfilePage = () => {
                     <button className="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-semibold text-gray-900 dark:text-white rounded-lg transition-colors">
                       Friends
                     </button>
-                    <button className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-sm font-semibold text-white rounded-lg transition-colors flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4" />
+                    <button
+                    onClick={() => {  handleMessage(user)}}
+                    className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-sm font-semibold text-white rounded-lg transition-colors flex items-center gap-2">
+                      <MessageCircle
+                      className="w-4 h-4" />
                       Message
                     </button>
                   </>

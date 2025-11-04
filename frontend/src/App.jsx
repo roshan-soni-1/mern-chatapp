@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, lazy, useCallback } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate,useParams } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useChatStore } from "./store/useChatStore";
@@ -43,7 +43,7 @@ const App = () => {
   const { authUser, checkAuth, isCheckingAuth, isPendingUser } = useAuthStore();
   const { theme } = useThemeStore();
   const { selectedUser } = useChatStore();
-
+  const { userId } = useParams();
   // Check authentication on mount
   useEffect(() => {
     checkAuth();
@@ -59,7 +59,7 @@ const App = () => {
 
   return (
     <div data-theme={currentTheme}>
-      {!selectedUser&& authUser && <BottomNav />}
+      {authUser && !selectedUser && !userId && <BottomNav />}
 
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
@@ -72,7 +72,23 @@ const App = () => {
               </ProtectedRoute>
             } 
           />
-
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute authUser={authUser}>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/chat/:userId"
+            element={
+              <ProtectedRoute authUser={authUser}>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
           {/* Sign Up */}
           <Route
             path="/signup"

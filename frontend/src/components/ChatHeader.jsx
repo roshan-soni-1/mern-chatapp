@@ -1,15 +1,19 @@
 import { X } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
-
+import {useNavigate } from "react-router-dom";
 const ChatHeader = ({props}) => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
-
+  const navigate = useNavigate();
   return (
     <div className="p-2.5 border-b border-base-300">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div 
+        onClick={()=>{
+          navigate(`/profile/${selectedUser._id}`)
+        }}
+        className="flex items-center gap-3">
           {/* Avatar */}
           <div className="avatar">
             <div className="size-10 rounded-full relative">
@@ -27,7 +31,10 @@ const ChatHeader = ({props}) => {
         </div>
 
         {/* Close button */}
-        <button onClick={() => setSelectedUser(null)}>
+        <button onClick={() =>{ setSelectedUser(null)
+          navigate(-1)
+        }}
+        >
           <X />
         </button>
       </div>

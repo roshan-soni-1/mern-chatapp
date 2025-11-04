@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { LoaderCircle,MessageCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import SidebarSkeleton from "../components/skeletons/SidebarSkeleton.jsx"
 
 const Sidebar= () => {
@@ -13,7 +13,7 @@ const Sidebar= () => {
   useEffect(() => {
     getUsers();
   }, [getUsers]);
-
+  const navigate = useNavigate();
   const filteredUsers = showOnlineOnly
     ? users.filter((user) => onlineUsers.includes(user._id))
     : users;
@@ -33,7 +33,13 @@ const Sidebar= () => {
       {filteredUsers.map((user) => (
         <button
           key={user._id}
-          onClick={() => setSelectedUser(user)}
+          onClick={() => {
+          {
+          /*setSelectedUser(user)*/
+            
+          }
+            navigate(`/chat/${user._id}`)
+          }}
           className={`
             w-full flex items-center gap-4 p-4 border-b border-base-300
             hover:bg-base-200 transition-colors
