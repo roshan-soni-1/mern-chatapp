@@ -128,7 +128,6 @@ signup: async (data) => {
       set({ isUpdatingProfile: false });
     }
   },
-  // 🔹 Socket connection
   connectSocket: () => {
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
